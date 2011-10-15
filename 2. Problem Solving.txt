@@ -1,0 +1,11 @@
+Tree Search
+
+Graph Search
+
+Uniform Cost Search
+
+A* Search
+
+Heuristics
+
+Can be automatically generating by relaxing the rules of the formal problem definition!  This guarantees not to overestimate, thereby satisfying the requirement of the search heuristic that it never overestimates.  The more it underestimates, the more of the search space will be expanded.  The closer it gets to the actual value the more directed (correctly) the search will be.
