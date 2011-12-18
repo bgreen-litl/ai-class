@@ -5,10 +5,10 @@ import heapq
 class State:
     PEGS = 3
 
-    def __init__(self, discs):
+    def __init__(self, discs, parent=None):
         self.discs = discs
         self.f = self.g = self.h = 0
-        self.parent = None
+        self.parent = parent
 
     def __hash__(self):
         return hash(self.discs)
@@ -29,15 +29,22 @@ class State:
                     discs = list(self.discs[:])
                     if d < pegs[q]:
                         discs[d] = q
-                        yield State(tuple(discs))
+                        yield State(tuple(discs), self)
+
+
+    def path_cost(self, parent):
+        return parent.g + 1
+
+    def heuristic(self):
+        return max(self.discs) + 1 - len([d for d in self.discs if d==2])
+
+
+def update(node, parent):
+    node.g = node.path_cost(parent)
+    node.h = node.heuristic()
+    node.f = node.g + node.h
+
                     
-    def update(self, parent):
-        self.parent = parent
-        self.g = parent.g + 1
-        self.h = max(self.discs) + 1 - len([d for d in self.discs if d==2])
-        self.f = self.g + self.h
-
-
 def path(end):
     state = end
     while state:
@@ -57,7 +64,7 @@ def search(start, end):
             return path(state)
         new = lambda x: x not in visited and x not in (b for a, b in frontier)
         for c in filter(new, state.adjacents()):
-            c.update(state)
+            update(c, state)
             heapq.heappush(frontier, (c.f, c))
 
 
