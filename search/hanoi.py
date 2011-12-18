@@ -3,69 +3,61 @@ import heapq
 
       
 class State:
-    def __init__(self, towers=([1, 2, 3, 4], [], [])):
-        self.towers = towers
+    def __init__(self, discs):
+        self.discs = discs
         self.f = self.g = self.h = 0
         self.parent = None
 
     def __hash__(self):
-        return reduce(lambda x, y : x * 17 + y, [7] + sum(self.towers, []))
+        return hash(self.discs)
 
     def __eq__(self, other):
-        return self.towers == other.towers
-
-    def __repr__(self):
-        return '%s (%s)' % (repr(self.towers), hash(self))
+        return self.discs == other.discs
 
     def adjacents(self):
-        for i, ti in enumerate(self.towers):
-            if not ti:
-                continue
-            for j in [(i + d) % 3 for d in [1, 2]]:
-                tj = self.towers[j]
-                if (not tj) or tj[0] > ti[0]:
-                    adj = [[], [], []]
-                    adj[i] = ti[1:]
-                    adj[j] = [ti[0]] + tj
-                    k = [x for x in range(3) if x not in [i, j]][0]
-                    adj[k] = self.towers[k]
-                    yield State(adj)
-
+        pegs = [9, 9, 9]
+        for d, p in enumerate(self.discs):
+            pegs[p] = min(pegs[p], d)
+        for d, p in enumerate(self.discs):
+            if pegs[p] == d:
+                for q in filter(lambda x: x != p, range(3)):
+                    discs = list(self.discs[:])
+                    if d < pegs[q]:
+                        discs[d] = q
+                        yield State(tuple(discs))
+                    
     def update(self, parent):
         self.parent = parent
         self.g = parent.g + 1
-        self.h = 4 - len(self.towers[2])
+        self.h = 4 - len([d for d in self.discs if d==2])
         self.f = self.g + self.h
 
     def path(end):
         state = end
         while state:
-            yield state.towers
+            yield str(state.discs)
             state = state.parent
 
 
-frontier = []
-heapq.heapify(frontier)
-visited = set()
-
-
 def search(start, end):
+    frontier = []
+    heapq.heapify(frontier)
+    visited = set()
     heapq.heappush(frontier, (start.f, start))
     while frontier:
         h, state = heapq.heappop(frontier)
         visited.add(state)
         if state == end:
-            return len(visited), state.path()
-        new = lambda x: x not in visited and x not in [b for a, b in frontier]
+            return state.path()
+        new = lambda x: x not in visited and x not in (b for a, b in frontier)
         for c in filter(new, state.adjacents()):
             c.update(state)
             heapq.heappush(frontier, (c.f, c))
-    return len(visited), []
 
 
 def main():
-    nodes, path = search(State(), State([[], [], [1, 2, 3, 4]]))
-    map(lambda x: sys.stdout.write(repr(x) + '\n'), path)
+    path = search(State((0, 0, 0, 0)), State((2, 2, 2, 2)))
+    map(sys.stdout.write, (p + '\n' for p in path))
 
 
 if __name__ == '__main__':
