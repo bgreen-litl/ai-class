@@ -3,6 +3,8 @@ import heapq
 
       
 class State:
+    PEGS = 3
+
     def __init__(self, discs):
         self.discs = discs
         self.f = self.g = self.h = 0
@@ -15,12 +17,12 @@ class State:
         return self.discs == other.discs
 
     def adjacents(self):
-        pegs = [9, 9, 9]
+        pegs = [len(self.discs)] * State.PEGS
         for d, p in enumerate(self.discs):
             pegs[p] = min(pegs[p], d)
         for d, p in enumerate(self.discs):
             if pegs[p] == d:
-                for q in filter(lambda x: x != p, range(3)):
+                for q in filter(lambda x: x != p, range(State.PEGS)):
                     discs = list(self.discs[:])
                     if d < pegs[q]:
                         discs[d] = q
@@ -29,7 +31,7 @@ class State:
     def update(self, parent):
         self.parent = parent
         self.g = parent.g + 1
-        self.h = 4 - len([d for d in self.discs if d==2])
+        self.h = max(self.discs) + 1 - len([d for d in self.discs if d==2])
         self.f = self.g + self.h
 
     def path(end):
