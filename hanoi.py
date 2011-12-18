@@ -31,7 +31,6 @@ class State:
                         discs[d] = q
                         yield State(tuple(discs), self)
 
-
     def path_cost(self, parent):
         return parent.g + 1
 
