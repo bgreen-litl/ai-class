@@ -1,3 +1,4 @@
+import sys
 import heapq
 
       
@@ -17,8 +18,6 @@ class State:
         return '%s (%s)' % (repr(self.towers), hash(self))
 
     def adjacents(self):
-        """Return a list of legal successor states"""
-        adjs = []
         for i, ti in enumerate(self.towers):
             if not ti:
                 continue
@@ -30,9 +29,7 @@ class State:
                     adj[j] = [ti[0]] + tj
                     k = [x for x in range(3) if x not in [i, j]][0]
                     adj[k] = self.towers[k]
-                    state = State(adj)
-                    adjs.append(state)
-        return adjs
+                    yield State(adj)
 
     def update(self, parent):
         self.parent = parent
@@ -40,42 +37,35 @@ class State:
         self.h = 4 - len(self.towers[2])
         self.f = self.g + self.h
 
-    def path(self):
-        path = []
-        state = self
-        while state.parent:
-            path.append(state)
+    def path(end):
+        state = end
+        while state:
+            yield state.towers
             state = state.parent
-        path.reverse()
-        return path
-            
+
 
 frontier = []
 heapq.heapify(frontier)
 visited = set()
 
+
 def search(start, end):
-    expanded = 0
     heapq.heappush(frontier, (start.f, start))
     while frontier:
         h, state = heapq.heappop(frontier)
         visited.add(state)
-        expanded += 1
         if state == end:
-            return expanded, state.path()
+            return len(visited), state.path()
         new = lambda x: x not in visited and x not in [b for a, b in frontier]
         for c in filter(new, state.adjacents()):
             c.update(state)
             heapq.heappush(frontier, (c.f, c))
-    return expanded, []
+    return len(visited), []
 
 
 def main():
     nodes, path = search(State(), State([[], [], [1, 2, 3, 4]]))
-    print("Expanded %s nodes and to discover the following solution in %s "
-          "steps" % (nodes, len(path)))
-    for step in path:
-        print step
+    map(lambda x: sys.stdout.write(repr(x) + '\n'), path)
 
 
 if __name__ == '__main__':
