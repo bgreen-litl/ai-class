@@ -19,7 +19,7 @@ class State:
     def __repr__(self):
         return repr(self.discs)
 
-    def adjacents(self):
+    def children(self):
         pegs = [len(self.discs)] * State.PEGS
         for d, p in enumerate(self.discs):
             pegs[p] = min(pegs[p], d)
@@ -62,7 +62,7 @@ def search(start, end):
         if state == end:
             return path(state)
         new = lambda x: x not in visited and x not in (b for a, b in frontier)
-        for c in filter(new, state.adjacents()):
+        for c in filter(new, state.children()):
             update(c, state)
             heapq.heappush(frontier, (c.f, c))
 
