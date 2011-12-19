@@ -31,15 +31,15 @@ class State:
                         discs[d] = q
                         yield State(tuple(discs), self)
 
-    def path_cost(self, parent):
-        return parent.g + 1
+    def path_cost(self):
+        return self.parent.g + 1
 
     def heuristic(self):
         return max(self.discs) + 1 - len([d for d in self.discs if d==2])
 
 
-def update(node, parent):
-    node.g = node.path_cost(parent)
+def update(node):
+    node.g = node.path_cost()
     node.h = node.heuristic()
     node.f = node.g + node.h
 
@@ -63,7 +63,7 @@ def search(start, end):
             return path(state)
         new = lambda x: x not in visited and x not in (b for a, b in frontier)
         for c in filter(new, state.children()):
-            update(c, state)
+            update(c)
             heapq.heappush(frontier, (c.f, c))
 
 
