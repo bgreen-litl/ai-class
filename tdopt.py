@@ -21,16 +21,6 @@ class State:
         self.parent = parent
         self.cost = 0
 
-    def __hash__(self):
-        return reduce(lambda x, y : x * 17 + hash(y), 
-                      [7] + self.mapping.items())
-
-    def __eq__(self, other):
-        return self.mapping == other.mapping
-
-    def __repr__(self):
-        return str(self.mapping)
-
     def _select(self, task):
         resources = State.resources - set(self.mapping.values())
         best = (999, 0)
