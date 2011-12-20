@@ -98,7 +98,7 @@ def main():
     State.init(tasks, resources)
 
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
-    scorer0 = lambda t, r, m: abs(t - r)
+    scorer0 = lambda t, r, m: abs(t - r) / 100.0
     scorer1 = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
     scorer2 = lambda t, r, m: abs(t - r) / 100.0 if t % 5 == 0 else 0.0
 
