@@ -13,10 +13,7 @@ class State:
         State.resources = resources
         State.alpha = alpha  # learning rate
         State.gamma = gamma  # discount rate
-        State.weights = {}
-        for t in tasks:
-            for r in resources:
-                State.weights[t, r] = 0.0
+        State.weights = dict(((t, r), 0.0) for r in resources for t in tasks)
 
     def __init__(self, mapping={}, pair=None, parent=None, scorer=None):
         if not scorer:
