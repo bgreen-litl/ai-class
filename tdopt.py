@@ -82,7 +82,7 @@ def main():
     State.init(tasks, resources)
 
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
-    scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
+    scorer = lambda t, r, m: abs(t - r) / 100.0
 
     # end condition defined the score total score required to stop
     end = lambda x: x == 0
