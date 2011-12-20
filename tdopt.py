@@ -1,9 +1,6 @@
 #!/usr/bin/env python2
 
-import sys
-import heapq
 from random import sample, random
-from collections import deque
 
 
 class State:
