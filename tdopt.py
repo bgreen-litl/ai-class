@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import sys
 import heapq
 from random import sample, random
@@ -9,8 +11,8 @@ class State:
     def init(tasks, resources, alpha=0.1, gamma=0.9):
         State.tasks = tasks
         State.resources = resources
-        State.alpha = alpha
-        State.gamma = gamma
+        State.alpha = alpha  # learning rate
+        State.gamma = gamma  # discount rate
         State.weights = {}
         for t in tasks:
             for r in resources:
