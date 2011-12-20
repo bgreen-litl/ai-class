@@ -12,38 +12,33 @@ class State:
         State.gamma = gamma  # discount rate
         State.weights = dict(((t, r), 0.0) for r in resources for t in tasks)
 
-    def __init__(self, mapping={}, pair=None, parent=None, scorer=None):
-        if not scorer:
-            scorer = parent.scorer
-        self.scorer = scorer
+    def __init__(self, mapping={}, pair=None, parent=None):
         self.mapping = mapping
         self.pair = pair
         self.parent = parent
         self.cost = 0
 
-    def _select(self, task):
+    def _select(self, task, scorer):
         resources = State.resources - set(self.mapping.values())
         best = (999, 0)
         for w, r in ((State.weights[task, r], r) for r in resources):
-            aff = self.scorer(task, r, self.mapping)
+            aff = scorer(task, r, self.mapping)
             if w + aff < best[0]:
                 best = (w + aff, r)
         return best[1]
 
-    def child(self):
+    def child(self, scorer):
         tasks = State.tasks - set(self.mapping.keys())
         if tasks:
             task = sample(tasks, 1)[0]  # random selection for the task
-            resource = self._select(task)  # greedy selection given the task
+            resource = self._select(task, scorer)  # greedy resource selection
             m = dict(self.mapping)
             m[task] = resource
             return State(m, (task, resource), self)
 
-        # leaf node - update weights with q-learning update rule
-        score = self.scorer
-        tot = sum(score(t, r, self.mapping) for t, r in self.mapping.items())
+    def update(self, cost):
         node = self.parent
-        last = tot
+        last = cost
         while node and node.pair:
             weight = State.weights[node.pair]
             nudge = (State.alpha * (State.gamma * (last - weight)))
@@ -51,11 +46,11 @@ class State:
             last = weight
             node = node.parent
 
-    def path_cost(self):
+    def path_cost(self, scorer):
         cost = 0
         if self.parent:
             cost += self.parent.cost
-            cost += self.scorer(self.pair[0], self.pair[1], self.mapping)
+            cost += scorer(self.pair[0], self.pair[1], self.mapping)
         return cost
 
 
@@ -66,12 +61,17 @@ def path(end):
         state = state.parent
 
 
-def search(start):
-    node = start
-    while node:
-        node.cost = node.path_cost()
-        last = node
-        node = node.child()
+def search(start, scorer, end):
+    cost = 999999
+    while not end(cost):
+        node = start
+        while node:
+            node.cost = node.path_cost(scorer)
+            last = node
+            node = node.child(scorer)
+        cost = sum(scorer(t, r, last.mapping) for t, r in last.mapping.items())
+        last.update(cost)  # update weights on path based on full score
+
     return last
 
 
@@ -82,17 +82,13 @@ def main():
     State.init(tasks, resources)
 
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
-    scorer0 = lambda t, r, m: abs(t - r) / 100.0
-    scorer1 = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
-    scorer2 = lambda t, r, m: abs(t - r) / 100.0 if t % 5 == 0 else 0.0
+    scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
 
-    cost = 100
-    # iterate until we find a perfect score - might want better stop condition
-    while cost > 0:
-        start = State(scorer=scorer0)
-        state = search(start)
-        cost = state.path_cost()
-        print state.mapping, cost
+    # end condition defined the score total score required to stop
+    end = lambda x: x == 0
+
+    state = search(State(), scorer, end)
+    print state.mapping, state.cost
 
 
 if __name__ == '__main__':
