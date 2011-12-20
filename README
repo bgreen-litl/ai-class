@@ -1,1 +1,2 @@
 hanoi.py - A* search implementation for towers of hanoi
+tdopt.py - combinatorial optimization using temporal difference learning
