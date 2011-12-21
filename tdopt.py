@@ -19,8 +19,8 @@ class State:
         self.cost = 0
 
     def _select(self, task, scorer):
-        resources = State.resources - set(self.mapping.values())
-        best = (999, 0)
+        resources = State.resources.difference(self.mapping.values())
+        best = (999999, 0)
         for w, r in ((State.weights[task, r], r) for r in resources):
             aff = scorer(task, r, self.mapping)
             if w + aff < best[0]:
@@ -28,7 +28,7 @@ class State:
         return best[1]
 
     def child(self, scorer):
-        tasks = State.tasks - set(self.mapping.keys())
+        tasks = State.tasks.difference(self.mapping.keys())
         if tasks:
             task = sample(tasks, 1)[0]  # random selection for the task
             resource = self._select(task, scorer)  # greedy resource selection
@@ -61,31 +61,44 @@ def path(end):
         state = state.parent
 
 
+def explore(start, scorer):
+    node = start
+    while node:
+        node.cost = node.path_cost(scorer)
+        last = node
+        node = node.child(scorer)
+
+    m = last.mapping
+    cost = sum(scorer(t, r, m) for t, r in m.iteritems())
+    last.update(cost)  # update weights on path based on full score
+    return cost, last
+    
+
 def search(start, scorer, end):
     cost = 999999
-    while not end(cost):
-        node = start
-        while node:
-            node.cost = node.path_cost(scorer)
-            last = node
-            node = node.child(scorer)
-        cost = sum(scorer(t, r, last.mapping) for t, r in last.mapping.items())
-        last.update(cost)  # update weights on path based on full score
-
-    return last
+    best = (cost, None)
+    i = 0
+    while not end(cost, i):
+        cost, path = explore(start, scorer)
+        print path.mapping, cost
+        if cost < best[0]:
+            best = (cost, path)
+        i += 1
+        
+    return best[1]
 
 
 def main():
     # fit 100 tasks to 100 resources - just ints here - could have properties
     tasks = set(i for i in xrange(100))
     resources = set(i for i in xrange(100))
-    State.init(tasks, resources)
+    State.init(tasks, resources, alpha=0.05)
 
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
-    scorer = lambda t, r, m: abs(t - r) / 100.0
+    scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
 
-    # end condition defined the score total score required to stop
-    end = lambda x: x == 0
+    # end condition can trigger based on total score or iterations
+    end = lambda x, y: x == 0 or y >= 750
 
     state = search(State(), scorer, end)
     print state.mapping, state.cost
