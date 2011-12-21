@@ -8,9 +8,15 @@ class State:
     def init(tasks, resources, alpha=0.1, gamma=0.9):
         State.tasks = tasks
         State.resources = resources
+        State.weights = {}
         State.alpha = alpha  # learning rate
         State.gamma = gamma  # discount rate
-        State.weights = dict(((t, r), 0.0) for r in resources for t in tasks)
+
+    @staticmethod
+    def weight(pair):
+        if not pair in State.weights:
+            State.weights[pair] = 0.0
+        return State.weights[pair]
 
     def __init__(self, mapping={}, pair=None, parent=None):
         self.mapping = mapping
@@ -21,7 +27,7 @@ class State:
     def _select(self, task, scorer):
         resources = State.resources.difference(self.mapping.values())
         best = (999999, 0)
-        for w, r in ((State.weights[task, r], r) for r in resources):
+        for w, r in ((State.weight((task, r)), r) for r in resources):
             aff = scorer(task, r, self.mapping)
             if w + aff < best[0]:
                 best = (w + aff, r)
@@ -40,7 +46,7 @@ class State:
         node = self.parent
         last = cost
         while node and node.pair:
-            weight = State.weights[node.pair]
+            weight = State.weight(node.pair)
             nudge = (State.alpha * (State.gamma * (last - weight)))
             State.weights[node.pair] += nudge
             last = weight
@@ -92,13 +98,13 @@ def main():
     # fit 100 tasks to 100 resources - just ints here - could have properties
     tasks = set(i for i in xrange(100))
     resources = set(i for i in xrange(100))
-    State.init(tasks, resources, alpha=0.05)
+    State.init(tasks, resources, alpha=0.1)
 
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
     scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
 
     # end condition can trigger based on total score or iterations
-    end = lambda x, y: x == 0 or y >= 750
+    end = lambda x, y: x == 0 or y >= 500
 
     state = search(State(), scorer, end)
     print state.mapping, state.cost
