@@ -79,10 +79,9 @@ def search(start, scorer, end):
     i = 0
     while not end(cost, i):
         cost, path = explore(start, scorer)
-        print path.mapping, cost
-        if cost < best[0]:
-            best = (cost, path)
+        best = min((cost, path), best)
         i += 1
+        print path.mapping, cost
         
     return best[1]
 
