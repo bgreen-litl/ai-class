@@ -60,13 +60,6 @@ class State:
         return cost
 
 
-def path(end):
-    state = end
-    while state:
-        yield state
-        state = state.parent
-
-
 def explore(start, scorer):
     node = start
     while node:
