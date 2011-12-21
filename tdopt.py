@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-from random import sample, random
+import sys
 
 
 class State:
@@ -28,7 +28,7 @@ class State:
         tasks = State.tasks.difference(self.mapping.keys())
         resources = State.resources.difference(self.mapping.values())
         if tasks and resources:
-            task = sample(tasks, 1)[0]  # random task, greedy resource
+            task = min(tasks)
             resource = min((State.weight((task, r)), r) for r in resources)[1]
             m = dict(self.mapping)
             m[task] = resource
@@ -52,7 +52,7 @@ class State:
         return cost
 
 
-def explore(start, scorer):
+def walk(start, scorer):
     node = start
     while node:
         node.cost = node.path_cost(scorer)
@@ -66,16 +66,13 @@ def explore(start, scorer):
     
 
 def search(start, scorer, end):
-    cost = 999999
-    best = (cost, None)
     i = 0
-    while not end(cost, i):
-        cost, path = explore(start, scorer)
-        best = min((cost, path), best)
+    score, path = sys.maxint, None
+    while not end(score, i):
+        score, path = walk(start, scorer)
+        print path.mapping, score
+        yield score, path
         i += 1
-        print path.mapping, cost
-        
-    return best[1]
 
 
 def main():
@@ -90,8 +87,8 @@ def main():
     # end condition can trigger based on total score or iterations
     end = lambda x, y: x == 0 or y >= 500
 
-    state = search(State(), scorer, end)
-    print state.mapping, state.cost
+    cost, path = min(search(State(), scorer, end))
+    print path.mapping, cost
 
 
 if __name__ == '__main__':
