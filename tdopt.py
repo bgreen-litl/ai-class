@@ -24,20 +24,12 @@ class State:
         self.parent = parent
         self.cost = 0
 
-    def _select(self, task, scorer):
-        resources = State.resources.difference(self.mapping.values())
-        best = (999999, 0)
-        for w, r in ((State.weight((task, r)), r) for r in resources):
-            aff = scorer(task, r, self.mapping)
-            if w + aff < best[0]:
-                best = (w + aff, r)
-        return best[1]
-
     def child(self, scorer):
         tasks = State.tasks.difference(self.mapping.keys())
-        if tasks:
-            task = sample(tasks, 1)[0]  # random selection for the task
-            resource = self._select(task, scorer)  # greedy resource selection
+        resources = State.resources.difference(self.mapping.values())
+        if tasks and resources:
+            task = sample(tasks, 1)[0]  # random task, greedy resource
+            resource = min((State.weight((task, r)), r) for r in resources)[1]
             m = dict(self.mapping)
             m[task] = resource
             return State(m, (task, resource), self)
@@ -90,7 +82,7 @@ def main():
     # fit 100 tasks to 100 resources - just ints here - could have properties
     tasks = set(i for i in xrange(100))
     resources = set(i for i in xrange(100))
-    State.init(tasks, resources, alpha=0.1)
+    State.init(tasks, resources)
 
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
     scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
