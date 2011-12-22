@@ -90,7 +90,7 @@ def search(start, scorer, end):
 # --- optimization specific definitions ---
 
 
-# here's a tricky scorer: even numbered resources should generally be close to
+# here's a tricky scorer: even numbered tasks should generally be close to
 # their resources, but multiple-of-ten tasks must not match exactly!
 def scorer(task, resource, mapping):
     cost = 0
