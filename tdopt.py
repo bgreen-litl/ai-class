@@ -5,7 +5,6 @@ class State:
         State.resources = resources
         State.alpha = alpha  # learning rate
         State.gamma = gamma  # discount rate
-        #State.weights = dict(((t, r), 0.0) for t in tasks for r in resources)
         State.weights = {}
 
     @staticmethod
