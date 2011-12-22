@@ -1,6 +1,6 @@
 class State:
     @staticmethod
-    def init(tasks, resources, scorer, alpha=0.1, gamma=0.9):
+    def init(tasks, resources, alpha=0.1, gamma=0.9):
         State.tasks = tasks
         State.resources = resources
         State.alpha = alpha  # learning rate
