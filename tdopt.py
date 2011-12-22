@@ -1,22 +1,17 @@
 #!/usr/bin/env python2
 
 import sys
-
+from random import sample
 
 class State:
     @staticmethod
-    def init(tasks, resources, alpha=0.1, gamma=0.9):
+    def init(tasks, resources, scorer, alpha=0.1, gamma=0.9):
         State.tasks = tasks
         State.resources = resources
-        State.weights = {}
         State.alpha = alpha  # learning rate
         State.gamma = gamma  # discount rate
-
-    @staticmethod
-    def weight(pair):
-        if not pair in State.weights:
-            State.weights[pair] = 0.0
-        return State.weights[pair]
+        State.weights = dict(((t, r), scorer(t, r, {}))
+                             for t in tasks for r in resources)
 
     def __init__(self, mapping={}, pair=None, parent=None):
         self.mapping = mapping
@@ -28,8 +23,9 @@ class State:
         tasks = State.tasks.difference(self.mapping.keys())
         resources = State.resources.difference(self.mapping.values())
         if tasks and resources:
-            task = min(tasks)
-            resource = min((State.weight((task, r)), r) for r in resources)[1]
+            r = sample(resources, 1)[0]
+            task = max((State.weights[(t, r)], t) for t in tasks)[1]
+            resource = min((State.weights[(task, r)], r) for r in resources)[1]
             m = dict(self.mapping)
             m[task] = resource
             return State(m, (task, resource), self)
@@ -38,7 +34,7 @@ class State:
         node = self.parent
         last = cost
         while node and node.pair:
-            weight = State.weight(node.pair)
+            weight = State.weights[node.pair]
             nudge = (State.alpha * (State.gamma * (last - weight)))
             State.weights[node.pair] += nudge
             last = weight
@@ -79,14 +75,13 @@ def main():
     # fit 100 tasks to 100 resources - just ints here - could have properties
     tasks = set(i for i in xrange(100))
     resources = set(i for i in xrange(100))
-    State.init(tasks, resources)
-
     # scorers return 0 for satisfaction through 1 for extreme dissatisfaction
-    scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 2 == 0 else 0.0
+    scorer = lambda t, r, m: abs(t - r) / 100.0 if t % 3 == 0 else 0.0
+
+    State.init(tasks, resources, scorer)
 
     # end condition can trigger based on total score or iterations
-    end = lambda x, y: x == 0 or y >= 500
-
+    end = lambda x, y: x == 0 or y >= 5
     cost, path = min(search(State(), scorer, end))
     print path.mapping, cost
 
