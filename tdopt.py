@@ -14,7 +14,6 @@ class State:
         else:
             return 0.0
 
-
     def __init__(self, mapping={}, pair=None, parent=None):
         self.mapping = mapping
         self.pair = pair
