@@ -14,12 +14,6 @@ class State:
         else:
             return 0.0
 
-    @staticmethod
-    def learn(pair, delta):
-        if pair not in State.weights:
-            State.weights[pair] = delta
-        else:
-            State.weights[pair] += delta
 
     def __init__(self, mapping={}, pair=None, parent=None):
         self.mapping = mapping
@@ -33,7 +27,10 @@ class State:
         while node and node.pair:
             weight = State.weight(node.pair)
             delta = State.alpha * (State.gamma * (last - weight))
-            State.learn(node.pair, delta)
+            if node.pair not in State.weights:
+                State.weights[node.pair] = delta
+            else:
+                State.weights[node.pair] += delta
             last = weight
             node = node.parent
 
@@ -58,7 +55,7 @@ def select_child(node, scorer):
                                   scorer(t, r, mapping))
         task = max((adjust(t, max(resources), mapping), t) for t in tasks)[1]
         resource = min((State.weight((task, r)), r) for r in resources)[1]
-        m = dict(mapping)
+        m = dict(mapping)  # copy parent's mapping
         m[task] = resource
         return State(m, (task, resource), node)
 
@@ -69,10 +66,9 @@ def explore_path(start, scorer):
         node.cost = path_cost(node, scorer)
         last = node
         node = select_child(node, scorer)
-
     m = last.mapping
     cost = sum(scorer(t, r, m) for t, r in m.iteritems())
-    last.update(cost)  # update weights on path based on full score
+    last.update(cost)
     return cost, last
     
 
@@ -110,7 +106,7 @@ def main():
     # fit 100 tasks to 100 resources - just ints here - could have properties
     tasks = set(i for i in xrange(100))
     resources = set(i for i in xrange(100))
-    State.init(tasks, resources, scorer, alpha=0.01)
+    State.init(tasks, resources, scorer)
     # end condition can trigger based on total score or iterations
     end = lambda score, iterations: score < 3.6
     cost, state, n = min(search(State(), scorer, end))
