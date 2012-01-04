@@ -103,8 +103,8 @@ def scorer(task, resource, mapping):
 
 def main():
     # fit 100 tasks to 100 resources - just ints here - could have properties
-    tasks = set(i for i in xrange(100))
-    resources = set(i for i in xrange(100))
+    tasks = set(range(100))
+    resources = set(range(100))
     State.init(tasks, resources)
     # end condition can trigger based on total score or iterations
     end = lambda score, iterations: score < 3.6
