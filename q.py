@@ -45,7 +45,7 @@ class Q:
         state_ = self.trans_func(state, action)
         val_, action_ = self.best_action(state_)
         delta = (self.learning_rate *
-                 (self.reward_func(state_) + self.discount_rate * val_ - cur))
+                 (self.reward_func(state) + self.discount_rate * val_ - cur))
         self.Q[state, action] += delta
 
 
